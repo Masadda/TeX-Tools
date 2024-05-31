@@ -1,7 +1,7 @@
 import os
 import argparse
 
-def get_dirtree(root, max_depth = None):
+def get_dirtree(root, max_depth):
     """utility for creating string representation for the 'dirtree' tex-package.
     input:
         root(str): path to desired root directory
@@ -24,9 +24,9 @@ def get_dirtree(root, max_depth = None):
     def _rec_dirtree(root, n, max_depth):
         name = root.split(os.sep)[-1]
         node = f'.{n} {name}.\n'
-        
-        if n >= max_depth:
-            return node
+        if max_depth != -1:
+            if n >= max_depth:
+                return node
         if not os.path.isdir(root):
             return node
         
@@ -42,10 +42,21 @@ def get_dirtree(root, max_depth = None):
 
 parser = argparse.ArgumentParser()
 parser.add_argument('root_dir')
-parser.add_argument('max_depth')
+parser.add_argument('max_depth', help='specify how many layers deep to list. -1 disable depth restriction.')
+parser.add_argument('out_file')
+parser.add_argument('-v', '--verbose', action='store_true')  
 args = parser.parse_args()
 
-print(args)
+if os.path.exists(args.out_file):
+    raise ValueError('The specified output-file already exists')
+
+if args.verbose:
+    print(args)
 
 dirtree = get_dirtree(args.root_dir, int(args.max_depth))
-print(dirtree)
+if args.verbose:
+    print(dirtree)
+
+with open(args.out_file, 'w') as fp:
+    fp.write(dirtree)
+        
